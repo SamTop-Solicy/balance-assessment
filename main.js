@@ -12,6 +12,13 @@ const models = {
             network_type: 'evm'
         },
         {
+            wallet: '0x0000a26b00c1f0df003000390027140000faa719',
+            addr: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+            ticker: 'WETH',
+            network: 56,
+            network_type: 'evm'
+        },
+        {
             wallet: '0x6a07eada81a7eb879f8dcbd9a339227f62c010c7',
             addr: '0xc3761EB917CD790B30dAD99f6Cc5b4Ff93C4F9eA',
             ticker: 'ERC20',
