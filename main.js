@@ -49,8 +49,7 @@ const calculate = async (models) => {
         else
             console.log(res.data);
     }));
-    console.log("Balances");
-    console.log(wallets);
+    return wallets;
 }
 
 calculate(models);
