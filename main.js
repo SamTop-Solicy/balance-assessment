@@ -50,14 +50,37 @@ const calculate = async (models) => {
             contracts[info.addr] = new Contract(web3, info.addr);
         const res = await contracts[info.addr].balanceOf(info.wallet);
         if (res.success) {
-            balances[info.network_type] = balances[info.network_type] || {};
-            balances[info.network_type][info.ticker] = (BigInt(balances[info.network_type][info.ticker] || 0) + BigInt(res.data)).toString();
+            balances[info.network_type] = (BigInt(balances[info.network_type] || 0) + BigInt(res.data)).toString();
         }
         else
             console.log(res.data);
     }));
-    console.log(balances);
-    return balances;
+    const res = [];
+    for (const [key, balance] of Object.entries(balances)) {
+        res.push({
+            exchange: key,
+            amount: formatBalanceNumber(balance),
+        });
+    }
+    console.log(res);
+    return res;
+}
+
+const prependZeroes = (number) => {
+    let res = number;
+    if (number.length < 18) {
+        for (let i = 0; i < 18 - number.length + 1; ++i) {
+            res = `0${res}`;
+        }
+    }
+    return res;
+}
+
+const formatBalanceNumber = (number) => {
+    number = prependZeroes(number);
+    const start = number.slice(0, number.length - 18);
+    const end = number.slice(number.length - 18, number.length - 14);
+    return `${start}.${end}`
 }
 
 calculate(models);
