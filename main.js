@@ -19,13 +19,13 @@ const models = {
             network_type: 'evm'
         },
         {
-            wallet: '0x15652636f3898f550b257b89926d5566821c32e1',
-            addr: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-            ticker: 'WETH',
+            wallet: '0x544984957b2d3af0ab331f6e8ca35bab00de53e3',
+            addr: '0xc3761EB917CD790B30dAD99f6Cc5b4Ff93C4F9eA',
+            ticker: 'ERC20',
             network_type: 'bnb_chain'
         },
         {
-            wallet: '0x15652636f3898f550b257b89926d5566821c32e1',
+            wallet: '0xb6c8da1ac9bb63386b0dd883e64432c09b8689ff',
             addr: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
             ticker: 'WETH',
             network_type: 'trx'
@@ -35,7 +35,7 @@ const models = {
 
 const contracts = {};
 
-const wallets = {};
+const balances = {};
 
 const calculate = async (models) => {
     await Promise.all(models.tokens.map(async (info) => {
@@ -43,13 +43,14 @@ const calculate = async (models) => {
             contracts[info.addr] = new Contract(web3, info.addr);
         const res = await contracts[info.addr].balanceOf(info.wallet);
         if (res.success) {
-            wallets[info.wallet] = wallets[info.wallet] || {};
-            wallets[info.wallet][info.ticker] = (BigInt(wallets[info.wallet][info.ticker] || 0) + BigInt(res.data)).toString();
+            balances[info.network_type] = balances[info.network_type] || {};
+            balances[info.network_type][info.ticker] = (BigInt(balances[info.network_type][info.ticker] || 0) + BigInt(res.data)).toString();
         }
         else
             console.log(res.data);
     }));
-    return wallets;
+    console.log(balances);
+    return balances;
 }
 
 calculate(models);
