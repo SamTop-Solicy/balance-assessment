@@ -64,7 +64,6 @@ const calculate = async (models) => {
             amount: formatBalanceNumber(data.balance, data.decimals),
         });
     }
-    console.log(res);
     return res;
 }
 
