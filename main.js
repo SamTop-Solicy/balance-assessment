@@ -1,15 +1,14 @@
-const web3 = require("./web3");
-const Contract = require("./contract");
+const ContractFactory = require("./contracts/contractFactory");
 
 const models = {
     exchange: 'binance',
     tokens: [
         {
-            wallet: '0x15652636f3898f550b257b89926d5566821c32e1',
-            addr: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+            wallet: 'TKHuVq1oKVruCGLvqVexFs6dawKv6fQgFs',
+            addr: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
             ticker: 'WETH',
             network: 1,
-            network_type: 'evm'
+            network_type: 'trx'
         },
         {
             wallet: '0x0000a26b00c1f0df003000390027140000faa719',
@@ -26,60 +25,63 @@ const models = {
             network_type: 'evm'
         },
         {
-            wallet: '0x544984957b2d3af0ab331f6e8ca35bab00de53e3',
-            addr: '0xc3761EB917CD790B30dAD99f6Cc5b4Ff93C4F9eA',
+            wallet: '0xa180Fe01B906A1bE37BE6c534a3300785b20d947',
+            addr: '0x55d398326f99059fF775485246999027B3197955',
             ticker: 'ERC20',
             network_type: 'bnb_chain'
-        },
-        {
-            wallet: '0xb6c8da1ac9bb63386b0dd883e64432c09b8689ff',
-            addr: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-            ticker: 'WETH',
-            network_type: 'trx'
         },
     ]
 };
 
 const contracts = {};
 
-const balances = {};
+const network_data = {};
 
 const calculate = async (models) => {
     await Promise.all(models.tokens.map(async (info) => {
-        if (!contracts[info.addr])
-            contracts[info.addr] = new Contract(web3, info.addr);
-        const res = await contracts[info.addr].balanceOf(info.wallet);
-        if (res.success) {
-            balances[info.network_type] = (BigInt(balances[info.network_type] || 0) + BigInt(res.data)).toString();
+        try {
+            if (!contracts[info.addr])
+                contracts[info.addr] = await ContractFactory.create(info.network_type, info.addr);
+            const res = await contracts[info.addr].balanceOf(info.wallet);
+            if (!network_data[info.network_type])
+                network_data[info.network_type] = {
+                    balance: 0,
+                    decimals: contracts[info.addr].decimals,
+                };
+            if (res.success) {
+                network_data[info.network_type].balance = (BigInt(network_data[info.network_type].balance || 0) + BigInt(res.data)).toString();
+            } else {
+                console.log(res.data);
+            }
+        } catch (e) {
+            console.log(e);
         }
-        else
-            console.log(res.data);
     }));
     const res = [];
-    for (const [key, balance] of Object.entries(balances)) {
+    for (const [key, data] of Object.entries(network_data)) {
         res.push({
             exchange: key,
-            amount: formatBalanceNumber(balance),
+            amount: formatBalanceNumber(data.balance, data.decimals),
         });
     }
     console.log(res);
     return res;
 }
 
-const prependZeroes = (number) => {
+const prependZeroes = (number, decimals) => {
     let res = number;
-    if (number.length < 18) {
-        for (let i = 0; i < 18 - number.length + 1; ++i) {
+    if (number.length < decimals) {
+        for (let i = 0; i < decimals - number.length + 1; ++i) {
             res = `0${res}`;
         }
     }
     return res;
 }
 
-const formatBalanceNumber = (number) => {
-    number = prependZeroes(number);
-    const start = number.slice(0, number.length - 18);
-    const end = number.slice(number.length - 18, number.length - 14);
+const formatBalanceNumber = (number, decimals) => {
+    number = prependZeroes(number, decimals);
+    const start = number.slice(0, number.length - decimals);
+    const end = number.slice(number.length - decimals, number.length - 14);
     return `${start}.${end}`
 }
 
